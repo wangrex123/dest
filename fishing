@@ -1,0 +1,78 @@
+#SingleInstance, Force
+SendMode Input
+SetWorkingDir, %A_ScriptDir%
+
+global 1080p := 0
+MsgBox, ***READ BEFORE USING***`nMake sure you are on 7 brightness, chromatic abberation is off, and hud opacity is max. Make sure you have interact bound to "E". Press F3 to start and F4 to stop. Does NOT work on Nessus.
+
+InputBox, 1080p, Resolution, If your computer monitor resolution is 1440p enter 0`nIf your computer monitor is 1080p enter 1
+
+pToken := Gdip_Startup()
+
+F3::
+{
+    coords := "1243|971|37|21"
+    width := 37
+    height := 21
+    threshold := 0.16
+    if (1080p)
+    {
+        coords := "932|728|27|16"
+        width := 27
+        height := 16
+        threshold := 0.12
+    }
+    Loop, 
+    {
+        loop,
+        {
+            pBitmap := Gdip_BitmapFromScreen(coords)
+            pWhite := simpleColorCheck(pBitmap, width, height)
+            Gdip_DisposeImage(pBitmap)
+            if (pWhite >= threshold)
+                Break
+        }
+        Send, {e down}
+        Sleep, 800
+        Send, {e Up}
+        DllCall("mouse_event",uint,1,int,-300,int,0,uint,0,int,0)
+        Sleep, 200
+        DllCall("mouse_event",uint,1,int,300,int,0,uint,0,int,0)
+        Send, {d Down}
+        Sleep, 100
+        Send, {d Up}
+        Sleep, 100
+        Send, {a Down}
+        Sleep, 100
+        Send, {a Up}
+    }
+}
+
+Return
+
+simpleColorCheck(pBitmap, w, h)
+{
+    x := 0
+    y := 0
+    white := 0
+    total := 0
+    loop %h%
+    {
+        loop %w%
+        {
+            color := (Gdip_GetPixel(pBitmap, x, y) & 0x00F0F0F0)
+            if (color == 0xF0F0F0)
+                white += 1
+            total += 1
+            x+= 1
+        }
+        x := 0
+        y += 1
+    }
+    pWhite := white/total
+    return pWhite
+}
+
+F4::Reload
+
+#Include %A_ScriptDir%\Gdip_all.ahk
